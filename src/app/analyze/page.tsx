@@ -15,7 +15,6 @@ import {
 import { findBestTradeKadane, getHistoricalPrices } from "../../utils/analyze";
 import { TradeResult, PriceData } from "@/types/index.types";
 
-// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -62,7 +61,7 @@ export default function AnalyzePage() {
       const result = findBestTradeKadane(priceData);
 
       if (result) {
-        // Calculate the amount of cryptocurrency that can be bought with the budget
+        // Calculate the amount of cryptocurrency that can be bought with the certain budget
         const amountBought = budget / result.buyPrice;
 
         // Calculate the profit based on the amount bought and the sell price
@@ -103,7 +102,7 @@ export default function AnalyzePage() {
     );
   }
 
-  // Prepare profit history data for the chart based on the budget
+  //profit history data
   const profitHistoryData = {
     labels: trade.profitHistory.map((entry) => entry.date.toLocaleDateString()),
     datasets: [

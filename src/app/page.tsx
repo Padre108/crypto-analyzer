@@ -24,7 +24,7 @@ export default function Home() {
     "DOTUSDT",
     "LINKUSDT",
     "MATICUSDT",
-  ];
+  ]; // You can add more cryptocurrency pairs but these crypto currencies as of now.
 
   return (
     <div className="container mx-auto p-4">

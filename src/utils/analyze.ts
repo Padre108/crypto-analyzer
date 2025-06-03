@@ -52,12 +52,12 @@ export function findBestTradeKadane(prices: PriceData[]): TradeResult {
   return {
     buyDate: prices[buyIndex].date,
     sellDate: prices[sellIndex].date,
-    currentProfit,
+    currentProfit, // Current profit at the end of the analysis
     maxProfit,
     buyPrice: prices[buyIndex].price,
     sellPrice: prices[sellIndex].price,
-    totalPossibleProfit: maxProfit, // Kadane's algorithm focuses on max profit
-    profitHistory, // Include profit history in the result
+    totalPossibleProfit: maxProfit, // aligns with max profit
+    profitHistory, // profit history for charting
   };
 }
 
