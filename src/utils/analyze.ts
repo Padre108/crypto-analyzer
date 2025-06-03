@@ -1,6 +1,5 @@
 import { client } from "../lib/bybit";
-
-import { TradeResult, PriceData } from "@/types/index.types";
+import { TradeResult, PriceData } from "@/types/types";
 
 export function findBestTradeKadane(prices: PriceData[]): TradeResult {
   if (prices.length < 2) throw new Error("Need at least 2 data points");
@@ -52,12 +51,12 @@ export function findBestTradeKadane(prices: PriceData[]): TradeResult {
   return {
     buyDate: prices[buyIndex].date,
     sellDate: prices[sellIndex].date,
-    currentProfit, // Current profit at the end of the analysis
+    currentProfit,
     maxProfit,
     buyPrice: prices[buyIndex].price,
     sellPrice: prices[sellIndex].price,
     totalPossibleProfit: maxProfit, // aligns with max profit
-    profitHistory, // profit history for charting
+    profitHistory, // profit history
   };
 }
 

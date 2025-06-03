@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { memo } from "react";
-import type { SymbolPair } from "@/types/index.types";
+import type { SymbolPair } from "@/types/types";
 
 const SymbolLink = memo(({ symbol }: { symbol: SymbolPair }) => (
   <Link

@@ -1,7 +1,7 @@
 "use client";
 
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -13,7 +13,7 @@ import {
   Legend,
 } from "chart.js";
 import { findBestTradeKadane, getHistoricalPrices } from "../../utils/analyze";
-import { TradeResult, PriceData } from "@/types/index.types";
+import { TradeResult, PriceData } from "@/types/types";
 
 ChartJS.register(
   CategoryScale,
@@ -25,6 +25,14 @@ ChartJS.register(
 );
 
 export default function AnalyzePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AnalyzePageContent />
+    </Suspense>
+  );
+}
+
+function AnalyzePageContent() {
   const searchParams = useSearchParams();
   const symbol = searchParams.get("symbol") || "ETHUSDT";
   const [priceData, setPriceData] = useState<PriceData[]>([]);
