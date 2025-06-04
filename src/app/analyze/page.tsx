@@ -282,6 +282,48 @@ function AnalyzePageContent() {
           }}
         />
       </div>
+
+      <div className="mb-6 p-4 bg-gray-800 rounded-lg">
+        <h2 className="text-lg font-semibold mb-2">
+          Price Differences and Max Profit
+        </h2>
+        <table className="table-auto w-full text-left">
+          <thead>
+            <tr>
+              <th className="border px-4 py-2">Date</th>
+              <th className="border px-4 py-2">Price Difference</th>
+              <th className="border px-4 py-2">Max Profit</th>
+            </tr>
+          </thead>
+          <tbody>
+            {priceData.map((data, index) => {
+              const priceDifference =
+                index === 0
+                  ? "-"
+                  : (data.price - priceData[index - 1].price).toFixed(2);
+              const maxProfit =
+                index === 0
+                  ? 0
+                  : Math.max(0, data.price - priceData[0].price).toFixed(2);
+
+              const isCurrentProfit = index === priceData.length - 1;
+
+              return (
+                <tr
+                  key={data.date.toISOString()}
+                  className={isCurrentProfit ? "bg-yellow-500" : ""}
+                >
+                  <td className="border px-4 py-2">
+                    {data.date.toLocaleDateString()}
+                  </td>
+                  <td className="border px-4 py-2">{priceDifference}</td>
+                  <td className="border px-4 py-2">{maxProfit}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

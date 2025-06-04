@@ -1,90 +1,83 @@
-import { client } from "../lib/bybit";
 import { TradeResult, PriceData } from "@/types/types";
 
 export function findBestTradeKadane(prices: PriceData[]): TradeResult {
   if (prices.length < 2) throw new Error("Need at least 2 data points");
-
-  const priceDifferences = prices.map((_, i) => {
-    if (i === 0) return 0;
-    return prices[i].price - prices[i - 1].price;
-  });
-
-  let maxProfit = 0;
+  
+  // Calculate daily price differences
+  const diffs = prices.slice(1).map((p, i) => p.price - prices[i].price);
+  
+  //  Kadane's algorithm to find maximum subarray sum
+  let maxProfit = 0; // Start with 0 -cause you  don't trade if no profit possible
   let currentProfit = 0;
-  let buyIndex = 0;
-  let sellIndex = 0;
-  let tempBuyIndex = 0;
-
-  const profitHistory: { date: Date; profit: number }[] = [{
-    date: prices[0].date,
-    profit: 0,
-  }];
-
-  for (let i = 1; i < priceDifferences.length; i++) {
-    // Adjust currentProfit to reflect actual spot trading logic
-    currentProfit = Math.max(0, prices[i].price - prices[tempBuyIndex].price);
-
-    // Track profit history
-    profitHistory.push({
-      date: prices[i].date,
-      profit: currentProfit,
-    });
-
+  let start = 0;
+  let tempStart = 0;
+  let end = 0;
+  
+  for (let i = 0; i < diffs.length; i++) {
+    if (currentProfit + diffs[i] < diffs[i]) {
+      currentProfit = diffs[i];
+      tempStart = i;
+    } else {
+      currentProfit += diffs[i];
+    }
+    
     if (currentProfit > maxProfit) {
       maxProfit = currentProfit;
-      buyIndex = tempBuyIndex;
-      sellIndex = i;
+      start = tempStart;
+      end = i + 1; // +1 because diffs is offset by 1 from prices
     }
-
-    if (currentProfit < 0) {
-      currentProfit = 0;
-      tempBuyIndex = i;
-    }
-
-    console.log(`Current Profit at index ${i}:`, currentProfit);
-    console.log(`Max Profit so far:`, maxProfit);
   }
-  console.log("Price Differences:", priceDifferences);
-  console.log("Max Profit:", maxProfit);
-  console.log("Total Possible Profit:", maxProfit);
-
+  
+  // Handle case where no profitable trade exists
+  if (maxProfit <= 0) {
+    return {
+      buyDate: prices[0].date,
+      sellDate: prices[0].date,
+      currentProfit: 0,
+      maxProfit: 0,
+      buyPrice: prices[0].price,
+      sellPrice: prices[0].price,
+      totalPossibleProfit: 0,
+      profitHistory: prices.map((p) => ({
+        date: p.date,
+        profit: 0,
+      })),
+    };
+  }
+  
+  // Calculate profit history based on final buy/sell points
+  const buyPrice = prices[start].price;
+  const profitHistory = prices.map((p, i) => ({
+    date: p.date,
+    profit: i <= start ? 0 : Math.max(0, p.price - buyPrice),
+  }));
+  
   return {
-    buyDate: prices[buyIndex].date,
-    sellDate: prices[sellIndex].date,
-    currentProfit,
+    buyDate: prices[start].date,
+    sellDate: prices[end].date,
+    currentProfit: maxProfit, // Use maxProfit as final current profit since this is a Spot trading
     maxProfit,
-    buyPrice: prices[buyIndex].price,
-    sellPrice: prices[sellIndex].price,
-    totalPossibleProfit: maxProfit, // aligns with max profit
-    profitHistory, // profit history
+    buyPrice: prices[start].price,
+    sellPrice: prices[end].price,
+    totalPossibleProfit: maxProfit,
+    profitHistory,
   };
 }
 
+
 export async function getHistoricalPrices(symbol: string): Promise<PriceData[]> {
   try {
-    let response;
-
-    // Try authenticated API first if keys exist
-    if (process.env.NEXT_PUBLIC_BYBIT_API_KEY) {
-      response = await client.getKline({
-        category: "spot",
-        symbol,
-        interval: "D",
-        limit: 30,
-      });
-    } else {
-      // Fallback to public API
-      const publicResponse = await fetch(
-        `https://api.bybit.com/v5/market/kline?category=spot&symbol=${symbol}&interval=D&limit=30`
-      );
-      response = await publicResponse.json();
-    }
+    // fetch historical price data from Bybit API
+    const publicResponse = await fetch(
+      `https://api.bybit.com/v5/market/kline?category=spot&symbol=${symbol}&interval=D&limit=30`
+    );
+    const response = await publicResponse.json();
 
     // Convert and sort by date (oldest first)
     return response.result.list
       .map((candle: string[]) => ({
-        date: new Date(parseInt(candle[0])), // Convert timestamp to Date
-        price: parseFloat(candle[4]), // Closing price
+        date: new Date(parseInt(candle[0])), // Converts timestamp to Date
+        price: parseFloat(candle[4]), // Closing price of the candle
       }))
       .sort((a: PriceData, b: PriceData) => a.date.getTime() - b.date.getTime()); // Sort chronologically
   } catch (error) {
